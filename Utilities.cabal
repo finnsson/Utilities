@@ -1,12 +1,12 @@
 name: Utilities
-version: 0.1.0
+version: 0.1.1
 cabal-version: -any
 build-type: Simple
 license: BSD4
 license-file: ""
 copyright:
 maintainer: Oscar Finnsson
-build-depends: base, template-haskell, haskell98, containers >= 0.2.0.1, HDBC >= 2.1.1
+build-depends: base >= 4, template-haskell, haskell98, containers >= 0.2.0.1, HDBC >= 2.1.1
 stability:
 homepage: http://github.com/finnsson/Utilities
 package-url:

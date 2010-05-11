@@ -1,4 +1,8 @@
-{-# OPTIONS_GHC -fglasgow-exts -XTemplateHaskell #-}
+-- {-# OPTIONS_GHC -fglasgow-exts -,  
+--    
+--  #-}
+{-# LANGUAGE UndecidableInstances,  OverlappingInstances, FlexibleInstances, TypeSynonymInstances
+ #-}
 {-|
   Contains useful generic functions not found elsewhere.
 
@@ -6,19 +10,43 @@
 -}
 module Utilities.Misc where
 
-import Char
+import Data.Char
 import Data.Maybe
-import List
-import Monad
+import Data.List
+import Control.Monad
 import Language.Haskell.TH
 
+-- \ Tuple functions
+
+fst3 :: (a,b,c) -> a
 fst3 (a,b,c) = a
+
+snd3 :: (a,b,c) -> b
 snd3 (a,b,c) = b
+
+trd3 :: (a,b,c) -> c
 trd3 (a,b,c) = c
 trd (a,b,c) = c
 
 
-turn a x y = a y x
+-- \ String functions
+
+-- \ ToString type class as found on stackoverflow (Porges answer at
+-- http://stackoverflow.com/questions/968198/haskell-show-screwed-up)
+-- Expanded with instance ToString Char.
+class ToString a where
+    toString :: a -> String
+
+instance ToString String where
+    toString = id
+
+instance ToString Char where
+    toString c = [c]
+
+instance Show a => ToString a where
+    toString = show
+
+
 
 -- | Remove all spaces in a string
 --
@@ -85,6 +113,9 @@ trim :: (a -> Bool) -> [a] -> [a]
 trim c = reverse . dropWhile c . reverse . dropWhile c
 
 -- | Trims whitespace from the beginning or end.
+--
+-- > trimWs "  foo  " == "foo"
+trimWs :: String -> String
 trimWs = trim (==' ')
 
 -- | Lambdifies a function. See '(||*)' and '(&&*)' for uses of 'lambdify'.
@@ -120,10 +151,8 @@ lambdify f a b x = f (a x) (b x)
 (f ^.. g) a = f . g a
 
 -- | 3-point-free operator. See '(^..)'.
+(^...) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (f ^...g ) a b = f . g a b
-
-
-
 
 -- | Split a 2-tuple 'x' into a 2-stack and pass it to 'f'.
 -- | The same as uncurry.
@@ -145,9 +174,17 @@ lambdify f a b x = f (a x) (b x)
 (>>*) :: Monad m => m a -> (a -> b) -> m b
 (>>*) v f = liftM f v -- v >>= (return . f)
 
-(..@) f x = (fst f x, snd f x)
+-- > f = ((+) 2, (*) 3)
+-- > x = 7
+-- > r = f ..@ x
+-- 
+-- | gives `(9, 21)`, i.e. `(2 + 9, 3 * 7)`.
+(..@) :: (a -> b, a -> c) -> a -> (b,c) 
+f ..@ x = (fst f x, snd f x)
 
-(...@) f x = (fst3 f x, snd3 f x, trd3 f x)
+-- | Same as `..@`, but with a 3-tuple. 
+(...@) :: (a -> b, a -> c, a -> d) -> a -> (b,c,d)
+f ...@ x = (fst3 f x, snd3 f x, trd3 f x)
 
 
 -- | Get the variable and the name as a tuple.
